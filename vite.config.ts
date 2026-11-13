@@ -5,6 +5,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // GitHub Pages serves this project from /kanchi/ rather than the domain root.
+    base: '/kanchi/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
