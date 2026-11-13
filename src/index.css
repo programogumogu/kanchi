@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: "Zen Kaku Gothic New", "IBM Plex Sans JP", sans-serif;
+    --font-sans: "IBM Plex Sans JP", sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #f4f2ec;
+    color: #1a2026;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Architectural drafting paper subtle dot matrix */
+.drafting-canvas {
+  background-color: #f4f2ec;
+  background-image: radial-gradient(#d5cfc2 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Hatching patterns for cadastral zoning */
+.hatch-wood {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(120, 53, 15, 0.12),
+    rgba(120, 53, 15, 0.12) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.hatch-reserve {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(217, 119, 6, 0.16),
+    rgba(217, 119, 6, 0.16) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.hatch-alley {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(100, 116, 139, 0.14),
+    rgba(100, 116, 139, 0.14) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
