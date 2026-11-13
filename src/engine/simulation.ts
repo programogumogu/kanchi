@@ -112,7 +112,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 70,
     apCost: 1,
     shortcut: '8',
-    description: '空地を事業資金捻出用の保留地に指定（接道後に売却可能）',
+    description: '整理済空地を保留地に指定（農地は先に更地整理が必要 · 接道後に売却可能）',
   },
 ];
 
@@ -484,13 +484,13 @@ export function computeDistrict(
     }
 
     // Calculate Approval Score (0 - 100)
-    let score = 48;
+    let score = scenario.strictConsensus ? 42 : 48;
 
     // 1. Asset Value Gain impact
     if (valueGainRate >= 40) score += 28;
     else if (valueGainRate >= 20) score += 20;
     else if (valueGainRate >= 5) score += 10;
-    else if (valueGainRate < 0) score += Math.max(-35, Math.round(valueGainRate * 0.9));
+    else if (valueGainRate < 0) score += Math.max(-45, Math.round(valueGainRate * 1.0));
 
     // 2. Genbu (Contribution rate) penalty/bonus
     if (afterTilesCount === 0) {
@@ -500,12 +500,12 @@ export function computeDistrict(
     } else if (genbuRate <= 34) {
       score += 2;
     } else {
-      score -= Math.min(35, Math.round((genbuRate - 34) * 1.1));
+      score -= Math.min(45, Math.round((genbuRate - 34) * 1.25));
     }
 
     // 3. Road access
     if (roadAccessRate === 100 && afterTilesCount > 0) score += 12;
-    else if (roadAccessRate < 50) score -= 12;
+    else if (roadAccessRate < 50) score -= 14;
 
     // 4. Cleanliness (no old_wood or factory remaining in their holdings)
     const hasOldUnserviced = owned.some((t) => t.zone === 'old_wood' || t.zone === 'factory');
@@ -514,7 +514,10 @@ export function computeDistrict(
 
     // 5. Preference match
     if (preferenceMet) score += 14;
-    else if (lo.preference === 'keep_area' && genbuRate > 30) score -= 8;
+    else {
+      if (lo.preference === 'keep_area' && genbuRate > 28) score -= 10;
+      if (scenario.strictConsensus && lo.preference === 'arterial_commercial') score -= 6;
+    }
 
     // 6. Bonus from negotiations / town halls / events
     score += lo.bonusApproval;
@@ -568,6 +571,7 @@ export function computeDistrict(
 
   const agreedCount = computedLandowners.filter((lo) => lo.status === 'agreed').length;
   const opposedCount = computedLandowners.filter((lo) => lo.status === 'opposed').length;
+  const criticalCount = computedLandowners.filter((lo) => lo.approval < 10).length;
   const parkCount = computedTiles.filter((t) => t.zone === 'park').length;
   const reserveCount = computedTiles.filter((t) => t.zone === 'reserve').length;
   const soldReserveCount = computedTiles.filter((t) => t.zone === 'reserve_sold').length;
@@ -611,6 +615,7 @@ export function computeDistrict(
       overallApprovalPct,
       agreedCount,
       opposedCount,
+      criticalCount,
       parkCount,
       reserveCount,
       soldReserveCount,
@@ -667,7 +672,8 @@ export function evaluateTileAction(
   tool: ToolType,
   selectedOwnerId: string | null,
   budget: number,
-  ap: number
+  ap: number,
+  demolitionMultiplier: number = 1
 ): ActionPreview {
   if (tool === 'inspect') {
     return { allowed: true, cost: 0, apCost: 0 };
@@ -692,12 +698,14 @@ export function evaluateTileAction(
   }
 
   const toolDef = TOOLS.find((t) => t.id === tool)!;
-  let demolitionSurcharge = 0;
+  let baseSurcharge = 0;
 
-  if (tile.zone === 'old_wood') demolitionSurcharge = 70;
-  else if (tile.zone === 'factory') demolitionSurcharge = 130;
-  else if (tile.zone === 'residential') demolitionSurcharge = 90;
-  else if (tile.zone === 'commercial') demolitionSurcharge = 180;
+  if (tile.zone === 'old_wood') baseSurcharge = 70;
+  else if (tile.zone === 'factory') baseSurcharge = 130;
+  else if (tile.zone === 'residential') baseSurcharge = 90;
+  else if (tile.zone === 'commercial') baseSurcharge = 180;
+
+  const demolitionSurcharge = Math.round(baseSurcharge * demolitionMultiplier);
 
   if (tool === 'road_6m') {
     if (tile.zone === 'road_6m') {
@@ -735,7 +743,8 @@ export function evaluateTileAction(
     if (tile.zone === 'vacant' && tile.ownerId === null) {
       return { allowed: false, reason: 'すでに整理済みの公有空地です', cost: 0, apCost: 0 };
     }
-    const cost = toolDef.baseCost + (tile.zone === 'factory' ? 80 : tile.zone === 'commercial' ? 120 : 0);
+    const extraClear = tile.zone === 'factory' ? 80 : tile.zone === 'commercial' ? 120 : 0;
+    const cost = toolDef.baseCost + Math.round(extraClear * demolitionMultiplier);
     if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: 0 };
     if (ap < toolDef.apCost) return { allowed: false, reason: '行動力(AP)が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: 0 };
     return { allowed: true, cost, apCost: toolDef.apCost, demolitionSurcharge: 0, newZone: 'vacant' };
@@ -775,7 +784,7 @@ export function evaluateTileAction(
       return { allowed: false, reason: 'すでにこの地権者の商業ビルです', cost: 0, apCost: 0 };
     }
 
-    const extraClear = tile.zone === 'old_wood' ? 50 : 0;
+    const extraClear = tile.zone === 'old_wood' ? Math.round(50 * demolitionMultiplier) : 0;
     const cost = toolDef.baseCost + extraClear;
     if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear };
     if (ap < toolDef.apCost) return { allowed: false, reason: '行動力(AP)が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear };
@@ -792,8 +801,13 @@ export function evaluateTileAction(
     if (tile.zone === 'reserve') {
       return { allowed: false, reason: 'すでに保留地です（選択して売却できます）', cost: 0, apCost: 0 };
     }
-    if (tile.zone !== 'vacant' && tile.zone !== 'farmland') {
-      return { allowed: false, reason: '保留地は空地・農地（または更地整理後）に指定できます', cost: 0, apCost: 0 };
+    if (tile.zone !== 'vacant') {
+      return {
+        allowed: false,
+        reason: '保留地は「整理済空地」にのみ指定できます（農地等は先に更地整理が必要）',
+        cost: 0,
+        apCost: 0,
+      };
     }
     if (tile.ownerId !== null) {
       return { allowed: false, reason: '地権者所有地は先に「更地整理」で公有化してから保留地指定してください', cost: 0, apCost: 0 };

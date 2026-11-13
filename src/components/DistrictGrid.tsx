@@ -18,6 +18,7 @@ interface DistrictGridProps {
   hoveredTileId: string | null;
   budget: number;
   ap: number;
+  demolitionMultiplier?: number;
   onTileClick: (tile: ComputedTile) => void;
   onTileHover: (tileId: string | null) => void;
   onSellReserve: (tileId: string) => void;
@@ -32,6 +33,7 @@ export function DistrictGrid({
   hoveredTileId,
   budget,
   ap,
+  demolitionMultiplier = 1,
   onTileClick,
   onTileHover,
   onSellReserve,
@@ -44,7 +46,14 @@ export function DistrictGrid({
     null;
 
   const hoverPreview: ActionPreview | null = inspectedTile
-    ? evaluateTileAction(inspectedTile, activeTool, selectedOwnerId, budget, ap)
+    ? evaluateTileAction(
+        inspectedTile,
+        activeTool,
+        selectedOwnerId,
+        budget,
+        ap,
+        demolitionMultiplier
+      )
     : null;
 
   const selectedTile = tiles.find((t) => t.id === selectedTileId) || null;
@@ -104,7 +113,14 @@ export function DistrictGrid({
               const isHovered = tile.id === hoveredTileId;
 
               const preview = isHovered
-                ? evaluateTileAction(tile, activeTool, selectedOwnerId, budget, ap)
+                ? evaluateTileAction(
+                    tile,
+                    activeTool,
+                    selectedOwnerId,
+                    budget,
+                    ap,
+                    demolitionMultiplier
+                  )
                 : null;
 
               const nUp = hasRoadNeighbor(tile.x, tile.y, 0, -1);

@@ -93,13 +93,25 @@ export function LandownerPanel({
           <div className="flex-1 overflow-y-auto divide-y divide-[#ECE8DF] max-h-[640px]">
             {landowners.map((lo) => {
               const isSelected = selectedOwnerId === lo.id;
+              const isCritical = lo.approval < 10;
               return (
                 <div
                   key={lo.id}
                   className={`p-3.5 space-y-2.5 transition-colors ${
-                    isSelected ? 'bg-[#EFF6FF]/60' : 'hover:bg-[#FAF9F5]'
+                    isCritical
+                      ? 'bg-[#FEF2F2]'
+                      : isSelected
+                      ? 'bg-[#EFF6FF]/60'
+                      : 'hover:bg-[#FAF9F5]'
                   }`}
                 >
+                  {isCritical && (
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#DC2626] bg-white border border-[#FECACA] rounded px-2 py-1">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>同意率10%未満：このまま期を進めると事業中止</span>
+                    </div>
+                  )}
+
                   {/* Header Row */}
                   <div className="flex items-start justify-between gap-2">
                     <button

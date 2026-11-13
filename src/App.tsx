@@ -218,7 +218,14 @@ export default function App() {
         return;
       }
 
-      const preview = evaluateTileAction(tile, activeTool, selectedOwnerId, budget, ap);
+      const preview = evaluateTileAction(
+        tile,
+        activeTool,
+        selectedOwnerId,
+        budget,
+        ap,
+        scenario.demolitionMultiplier ?? 1
+      );
       if (!preview.allowed || !preview.newZone) {
         sound.playError();
         if (preview.reason) showToast(preview.reason);
@@ -278,6 +285,7 @@ export default function App() {
       landowners,
       appendLog,
       showToast,
+      scenario.demolitionMultiplier,
     ]
   );
 
@@ -398,6 +406,19 @@ export default function App() {
       ]);
     }
 
+    // Check consensus breakdown failure (<10% approval for any landowner when advancing turn)
+    const criticalOwners = computedLandowners.filter((lo) => lo.approval < 10);
+    if (criticalOwners.length > 0) {
+      setBudget(nextBudget);
+      const names = criticalOwners.map((o) => `${o.name}（${o.approval}%）`).join('・');
+      setEndReason(
+        `${names}の同意率が10%未満のまま期を進めたため、地権者との信頼関係が破綻し区画整理事業が中止されました。`
+      );
+      setGameState('GAME_OVER');
+      sound.playError();
+      return;
+    }
+
     // Check failure conditions
     if (nextTurn > scenario.maxTurns) {
       setBudget(nextBudget);
@@ -445,6 +466,7 @@ export default function App() {
     budget,
     scenario,
     computedTiles,
+    computedLandowners,
     nextTurnApModifier,
     usedEventIds,
   ]);
@@ -589,12 +611,23 @@ export default function App() {
           </nav>
 
           <div className="flex items-center gap-3 shrink-0">
+            {summary.criticalCount > 0 && (
+              <span className="hidden xl:inline text-xs font-bold text-[#DC2626]">
+                同意10%未満あり（進めると中止）
+              </span>
+            )}
             <button
               type="button"
               onClick={handleAdvanceTurn}
-              className="px-4 py-2 text-xs font-semibold text-white bg-[#1D4ED8] rounded-md hover:bg-[#1E40AF] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className={`px-4 py-2 text-xs font-semibold text-white rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                summary.criticalCount > 0
+                  ? 'bg-[#DC2626] hover:bg-[#B91C1C]'
+                  : 'bg-[#1D4ED8] hover:bg-[#1E40AF]'
+              }`}
             >
-              第{turn + 1}期へ進む
+              {summary.criticalCount > 0
+                ? `第${turn + 1}期へ進む（中止警告）`
+                : `第${turn + 1}期へ進む`}
             </button>
           </div>
         </div>
@@ -715,6 +748,7 @@ export default function App() {
           hoveredTileId={hoveredTileId}
           budget={budget}
           ap={ap}
+          demolitionMultiplier={scenario.demolitionMultiplier ?? 1}
           onTileClick={handleTileClick}
           onTileHover={setHoveredTileId}
           onSellReserve={handleSellReserve}

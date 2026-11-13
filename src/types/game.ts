@@ -89,6 +89,7 @@ export interface DistrictSummary {
   overallApprovalPct: number;
   agreedCount: number;
   opposedCount: number;
+  criticalCount: number;
   parkCount: number;
   reserveCount: number;
   soldReserveCount: number;
@@ -116,6 +117,8 @@ export interface ScenarioConfig {
   apPerTurn: number;
   maxTurns: number;
   baseUnitValue: number;
+  demolitionMultiplier?: number;
+  strictConsensus?: boolean;
   targets: {
     minApprovalPct: number;
     minParks: number;
