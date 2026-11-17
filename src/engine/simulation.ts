@@ -16,7 +16,7 @@ export const TILE_AREA_SQM = 250; // Each grid cell = 250m²
 
 export const ZONE_LABELS: Record<ZoneType, string> = {
   old_wood: '木密老朽家屋',
-  alley: '狭隘私道 (2m)',
+  alley: '狭隘路地 (2m)',
   farmland: '農地・遊休地',
   factory: '老朽工場・倉庫',
   vacant: '整理済空地',
@@ -28,7 +28,7 @@ export const ZONE_LABELS: Record<ZoneType, string> = {
   reserve: '保留地 (売却可)',
   reserve_sold: '売却済保留地',
   station: '鉄道駅・高架',
-  arterial_entry: '既存幹線接続点',
+  arterial_entry: '幹線接続点',
 };
 
 export interface ToolInfo {
@@ -49,7 +49,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 0,
     apCost: 0,
     shortcut: '1',
-    description: '区画の路線価・接道状況・地権者詳細を確認',
+    description: '区画の坪単価・接道状況・地権者の情報を確認します',
   },
   {
     id: 'road_6m',
@@ -58,7 +58,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 140,
     apCost: 1,
     shortcut: '2',
-    description: '緊急車両が進入可能な生活道路を敷設 (+35%地価)',
+    description: '緊急車両が入れる生活道路を敷きます（周囲の価格 +38%）',
   },
   {
     id: 'road_12m',
@@ -67,7 +67,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 300,
     apCost: 2,
     shortcut: '3',
-    description: '商業立地・高路線価を生む都市幹線道路 (+75%地価)',
+    description: '商業ビルも建てられる大通りを敷きます（周囲の価格 +72%）',
   },
   {
     id: 'park',
@@ -76,7 +76,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 200,
     apCost: 1,
     shortcut: '4',
-    description: '周囲の地価・防災性を高め住民満足度を向上',
+    description: '周囲の地価と防災性を高め、住民の納得度を上げます',
   },
   {
     id: 'clear',
@@ -85,7 +85,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 110,
     apCost: 1,
     shortcut: '5',
-    description: '老朽家屋・工場・農地を整理し公共用地・換地用空地へ',
+    description: '古い家・工場・農地を片づけ、公有の「整理済空地」にします',
   },
   {
     id: 'replot_res',
@@ -94,7 +94,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 90,
     apCost: 1,
     shortcut: '6',
-    description: '選択中の地権者に整った住宅区画を換地配置',
+    description: '地権者にきれいな住宅地を換地します（既存所有地なら自動で本人へ割付）',
   },
   {
     id: 'replot_com',
@@ -103,7 +103,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 260,
     apCost: 2,
     shortcut: '7',
-    description: '接道区画に高容積の複合商業ビルを換地（資産価値1.6倍換算）',
+    description: '接道区画に複合商業ビルを建てて換地します（広さ1.5倍・価値1.4倍相当）',
   },
   {
     id: 'reserve',
@@ -112,7 +112,7 @@ export const TOOLS: ToolInfo[] = [
     baseCost: 70,
     apCost: 1,
     shortcut: '8',
-    description: '整理済空地を保留地に指定（農地は先に更地整理が必要 · 接道後に売却可能）',
+    description: '「整理済空地」を売却用の保留地にします（農地は先に更地整理が必要）',
   },
 ];
 
@@ -665,6 +665,7 @@ export interface ActionPreview {
   apCost: number;
   demolitionSurcharge?: number;
   newZone?: ZoneType;
+  resolvedOwnerId?: string;
 }
 
 export function evaluateTileAction(
@@ -673,7 +674,8 @@ export function evaluateTileAction(
   selectedOwnerId: string | null,
   budget: number,
   ap: number,
-  demolitionMultiplier: number = 1
+  demolitionMultiplier: number = 1,
+  soleOwnerId: string | null = null
 ): ActionPreview {
   if (tool === 'inspect') {
     return { allowed: true, cost: 0, apCost: 0 };
@@ -682,7 +684,7 @@ export function evaluateTileAction(
   if (tile.isFixed) {
     return {
       allowed: false,
-      reason: '駅・既存幹線接続点は変更できません',
+      reason: '駅や幹線接続点は変更できません',
       cost: 0,
       apCost: 0,
     };
@@ -691,7 +693,7 @@ export function evaluateTileAction(
   if (tile.zone === 'reserve_sold') {
     return {
       allowed: false,
-      reason: '売却済の保留地は変更できません',
+      reason: '売却済みの保留地は変更できません',
       cost: 0,
       apCost: 0,
     };
@@ -721,7 +723,6 @@ export function evaluateTileAction(
     if (tile.zone === 'road_12m') {
       return { allowed: false, reason: 'すでに12m幹線道路です', cost: 0, apCost: 0 };
     }
-    // Upgrading 6m road to 12m costs slightly less
     const upgradeDiscount = tile.zone === 'road_6m' ? 80 : 0;
     const cost = toolDef.baseCost + demolitionSurcharge - upgradeDiscount;
     if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge };
@@ -741,7 +742,7 @@ export function evaluateTileAction(
 
   if (tool === 'clear') {
     if (tile.zone === 'vacant' && tile.ownerId === null) {
-      return { allowed: false, reason: 'すでに整理済みの公有空地です', cost: 0, apCost: 0 };
+      return { allowed: false, reason: 'すでに整理済空地です', cost: 0, apCost: 0 };
     }
     const extraClear = tile.zone === 'factory' ? 80 : tile.zone === 'commercial' ? 120 : 0;
     const cost = toolDef.baseCost + Math.round(extraClear * demolitionMultiplier);
@@ -751,18 +752,27 @@ export function evaluateTileAction(
   }
 
   if (tool === 'replot_res' || tool === 'replot_com') {
-    if (!selectedOwnerId) {
-      return { allowed: false, reason: '右側の台帳から割付対象の地権者を選択してください', cost: 0, apCost: 0 };
+    // When a parcel already belongs to a landowner (wood/residential/farmland), that landowner is the sole eligible recipient
+    const isOwnedReplotTarget =
+      tile.ownerId !== null &&
+      (tile.zone === 'old_wood' || tile.zone === 'residential' || tile.zone === 'farmland');
+    const resolvedOwnerId = isOwnedReplotTarget
+      ? tile.ownerId!
+      : selectedOwnerId ?? soleOwnerId;
+
+    if (!resolvedOwnerId) {
+      return { allowed: false, reason: '右側の地権者台帳から割付先を選んでください', cost: 0, apCost: 0 };
     }
+
     const canPlaceOn =
-      tile.zone === 'vacant' ||
-      tile.zone === 'farmland' ||
-      (tile.ownerId === selectedOwnerId && (tile.zone === 'old_wood' || tile.zone === 'residential'));
+      (tile.zone === 'vacant' && tile.ownerId === null) ||
+      (tile.zone === 'farmland' && tile.ownerId === null) ||
+      isOwnedReplotTarget;
 
     if (!canPlaceOn) {
       return {
         allowed: false,
-        reason: '「整理済空地」「農地」または選択地権者の既存区画にのみ換地できます',
+        reason: '公有の「整理済空地」「農地」か、地権者の既存区画（木密・宅地・農地）に換地できます',
         cost: 0,
         apCost: 0,
       };
@@ -771,46 +781,47 @@ export function evaluateTileAction(
     if (tool === 'replot_com' && (tile.roadAccess === 'none' || !tile.roadNetworkConnected)) {
       return {
         allowed: false,
-        reason: '立体商業ビルは道路ネットワークに接続された区画にのみ建設可能です',
+        reason: '立体商業ビルは幹線に接続された道路沿いにのみ建てられます',
         cost: 0,
         apCost: 0,
       };
     }
 
-    if (tool === 'replot_res' && tile.zone === 'residential' && tile.ownerId === selectedOwnerId) {
+    if (tool === 'replot_res' && tile.zone === 'residential' && tile.ownerId === resolvedOwnerId) {
       return { allowed: false, reason: 'すでにこの地権者の整形宅地です', cost: 0, apCost: 0 };
     }
-    if (tool === 'replot_com' && tile.zone === 'commercial' && tile.ownerId === selectedOwnerId) {
+    if (tool === 'replot_com' && tile.zone === 'commercial' && tile.ownerId === resolvedOwnerId) {
       return { allowed: false, reason: 'すでにこの地権者の商業ビルです', cost: 0, apCost: 0 };
     }
 
     const extraClear = tile.zone === 'old_wood' ? Math.round(50 * demolitionMultiplier) : 0;
     const cost = toolDef.baseCost + extraClear;
-    if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear };
-    if (ap < toolDef.apCost) return { allowed: false, reason: '行動力(AP)が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear };
+    if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear, resolvedOwnerId };
+    if (ap < toolDef.apCost) return { allowed: false, reason: '行動力(AP)が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: extraClear, resolvedOwnerId };
     return {
       allowed: true,
       cost,
       apCost: toolDef.apCost,
       demolitionSurcharge: extraClear,
       newZone: tool === 'replot_res' ? 'residential' : 'commercial',
+      resolvedOwnerId,
     };
   }
 
   if (tool === 'reserve') {
     if (tile.zone === 'reserve') {
-      return { allowed: false, reason: 'すでに保留地です（選択して売却できます）', cost: 0, apCost: 0 };
+      return { allowed: false, reason: 'すでに保留地です（クリックして下のボタンから売却できます）', cost: 0, apCost: 0 };
     }
     if (tile.zone !== 'vacant') {
       return {
         allowed: false,
-        reason: '保留地は「整理済空地」にのみ指定できます（農地等は先に更地整理が必要）',
+        reason: '「整理済空地」にのみ指定できます（農地や古い建物は先に「更地化・整理」を行ってください）',
         cost: 0,
         apCost: 0,
       };
     }
     if (tile.ownerId !== null) {
-      return { allowed: false, reason: '地権者所有地は先に「更地整理」で公有化してから保留地指定してください', cost: 0, apCost: 0 };
+      return { allowed: false, reason: '地権者の土地のため、先に「更地化・整理」で公有化してください', cost: 0, apCost: 0 };
     }
     const cost = toolDef.baseCost;
     if (budget < cost) return { allowed: false, reason: '事業資金が不足しています', cost, apCost: toolDef.apCost, demolitionSurcharge: 0 };

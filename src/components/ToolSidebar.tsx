@@ -112,7 +112,7 @@ export function ToolSidebar({
               htmlFor="replot-owner-select"
               className="block text-[11px] font-semibold text-[#1A2026]"
             >
-              換地の割付先（地権者）
+              換地の割付先（空地・公有農地用）
             </label>
             <select
               id="replot-owner-select"
@@ -122,24 +122,27 @@ export function ToolSidebar({
             >
               {landowners.map((lo) => (
                 <option key={lo.id} value={lo.id}>
-                  {lo.name}（現在 {lo.afterTilesCount}区画 / 同意 {lo.approval}%）
+                  {lo.name}（{lo.afterTilesCount}区画 / 同意 {lo.approval}%）
                 </option>
               ))}
             </select>
+            <p className="text-[10px] text-[#64748B] leading-snug">
+              ※ 地権者の既存区画をクリックした場合は、自動でその持ち主へ換地されます。
+            </p>
           </div>
         )}
       </div>
 
-      {/* Completion Targets Checklist */}
+      {/* Completion Targets Checklist (No truncation so every condition stays readable) */}
       <div className="bg-white border border-[#DED9CE] rounded-lg p-3.5 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="font-display text-sm font-bold text-[#1A2026]">換地処分 達成基準</h2>
-          <span className="font-mono-num text-[11px] text-[#5A6572]">
+          <span className="font-mono-num text-[11px] text-[#5A6572] shrink-0">
             {Object.values(summary.goalsMet).filter(Boolean).length}/6 達成
           </span>
         </div>
 
-        <ul className="space-y-2 text-xs">
+        <ul className="space-y-2.5 text-xs">
           <GoalRow
             met={summary.goalsMet.roadAccess}
             label="全地権者区画の接道率"
@@ -147,7 +150,7 @@ export function ToolSidebar({
           />
           <GoalRow
             met={summary.goalsMet.allClear}
-            label="所有内の老朽木密・工場解消"
+            label="所有内の木密・老朽工場の解消"
             value={summary.unservicedParcelCount === 0 ? '解消済' : `残 ${summary.unservicedParcelCount}区画`}
           />
           <GoalRow
@@ -167,7 +170,7 @@ export function ToolSidebar({
           />
           <GoalRow
             met={summary.goalsMet.noOpposed}
-            label="強硬反対の地権者"
+            label="反対（45%未満）の地権者"
             value={summary.opposedCount === 0 ? '0名' : `${summary.opposedCount}名`}
           />
         </ul>
@@ -208,7 +211,7 @@ export function ToolSidebar({
           都市整備公債を発行 (+¥600万)
         </button>
         <p className="text-[11px] text-[#64748B] leading-snug">
-          基本は「保留地指定→接道→売却」で資金を回しますが、逼迫時は公債（毎期利子¥40万）を発行できます。
+          基本は「更地整理 → 保留地指定 → 接道 → 売却」で資金を回します。資金が厳しいときは公債（毎期利子¥40万）で補えます。
         </p>
       </div>
     </aside>
@@ -217,19 +220,19 @@ export function ToolSidebar({
 
 function GoalRow({ met, label, value }: { met: boolean; label: string; value: string }) {
   return (
-    <li className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1.5 min-w-0">
+    <li className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-1.5 min-w-0">
         {met ? (
-          <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0 mt-0.5" />
         ) : (
-          <Circle className="w-4 h-4 text-[#94A3B8] shrink-0" />
+          <Circle className="w-4 h-4 text-[#94A3B8] shrink-0 mt-0.5" />
         )}
-        <span className={`truncate ${met ? 'text-[#1A2026] font-medium' : 'text-[#4A5562]'}`}>
+        <span className={`leading-snug ${met ? 'text-[#1A2026] font-medium' : 'text-[#4A5562]'}`}>
           {label}
         </span>
       </div>
       <span
-        className={`font-mono-num shrink-0 font-semibold ${
+        className={`font-mono-num shrink-0 font-semibold leading-snug ${
           met ? 'text-[#15803D]' : 'text-[#5A6572]'
         }`}
       >

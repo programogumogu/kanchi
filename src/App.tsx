@@ -103,7 +103,7 @@ export default function App() {
         id: 'init',
         turn: 1,
         type: 'action',
-        text: `${sc.title}の区画整理事業に着工しました。`,
+        text: `${sc.title}の区画整理事業を開始しました。`,
       },
     ]);
     setUndoStack([]);
@@ -113,6 +113,8 @@ export default function App() {
     setGameState('PLAYING');
     sound.playTurn();
   }, []);
+
+  const soleOwnerId = landowners.length === 1 ? landowners[0].id : null;
 
   const { computedTiles, computedLandowners, summary } = useMemo(() => {
     if (tiles.length === 0) {
@@ -137,7 +139,7 @@ export default function App() {
   }, [tiles, landowners, budget, ap, ledger, logs, townHallUsedThisTurn]);
 
   const handleUndo = useCallback(() => {
-    if (undoStack.length === 0) return;
+    if (undoStack.length === 0 || activeEvent) return;
     const last = undoStack[undoStack.length - 1];
     setTiles(last.tiles);
     setLandowners(last.landowners);
@@ -148,8 +150,8 @@ export default function App() {
     setTownHallUsedThisTurn(last.townHallUsedThisTurn);
     setUndoStack((prev) => prev.slice(0, -1));
     sound.playStamp();
-    showToast('直前の施工操作を取り消しました。');
-  }, [undoStack, showToast]);
+    showToast('ひとつ前の操作を取り消しました。');
+  }, [undoStack, activeEvent, showToast]);
 
   const handleSelectTool = useCallback(
     (tool: ToolType) => {
@@ -198,9 +200,18 @@ export default function App() {
 
   const handleTileClick = useCallback(
     (tile: ComputedTile) => {
-      if (gameState !== 'PLAYING' || activeEvent) return;
+      if (gameState !== 'PLAYING') return;
 
       setSelectedTileId(tile.id);
+
+      // While an event choice is pending, allow read-only tile & owner inspection
+      if (activeEvent) {
+        if (tile.ownerId) {
+          setSelectedOwnerId(tile.ownerId);
+        }
+        sound.playStamp();
+        return;
+      }
 
       // If inspecting, also highlight owner if tile has one
       if (activeTool === 'inspect') {
@@ -214,7 +225,7 @@ export default function App() {
       // Clicking an already-designated reserve lot while using reserve tool selects it for quick sale
       if (activeTool === 'reserve' && tile.zone === 'reserve') {
         sound.playStamp();
-        showToast(`保留地 ${tile.id} を選択しました。下部バーから売却できます。`);
+        showToast(`保留地 ${tile.id} を選択しました。下部パネルから売却できます。`);
         return;
       }
 
@@ -224,7 +235,8 @@ export default function App() {
         selectedOwnerId,
         budget,
         ap,
-        scenario.demolitionMultiplier ?? 1
+        scenario.demolitionMultiplier ?? 1,
+        soleOwnerId
       );
       if (!preview.allowed || !preview.newZone) {
         sound.playError();
@@ -235,6 +247,7 @@ export default function App() {
       pushUndo();
 
       const newZone = preview.newZone;
+      const targetOwnerId = preview.resolvedOwnerId ?? selectedOwnerId;
       const nextOwnerId =
         newZone === 'road_6m' ||
         newZone === 'road_12m' ||
@@ -243,8 +256,12 @@ export default function App() {
         newZone === 'reserve'
           ? null
           : newZone === 'residential' || newZone === 'commercial'
-          ? selectedOwnerId
+          ? targetOwnerId
           : tile.ownerId;
+
+      if (preview.resolvedOwnerId && preview.resolvedOwnerId !== selectedOwnerId) {
+        setSelectedOwnerId(preview.resolvedOwnerId);
+      }
 
       setTiles((prev) =>
         prev.map((t) =>
@@ -266,8 +283,8 @@ export default function App() {
         ? landowners.find((o) => o.id === nextOwnerId)?.name
         : null;
       const actionMsg = ownerName
-        ? `${tile.id} を「${ZONE_LABELS[newZone]}」（${ownerName}）へ換地`
-        : `${tile.id} を「${ZONE_LABELS[newZone]}」に整備`;
+        ? `${tile.id} に ${ownerName} へ「${ZONE_LABELS[newZone]}」を換地`
+        : `${tile.id} を「${ZONE_LABELS[newZone]}」へ整備`;
 
       appendLog('action', actionMsg, -preview.cost);
 
@@ -279,6 +296,7 @@ export default function App() {
       activeEvent,
       activeTool,
       selectedOwnerId,
+      soleOwnerId,
       budget,
       ap,
       pushUndo,
@@ -291,11 +309,15 @@ export default function App() {
 
   const handleSellReserve = useCallback(
     (tileId: string) => {
+      if (activeEvent) {
+        showToast('先に協議事項の対応方針を選択してください。');
+        return;
+      }
       const tile = computedTiles.find((t) => t.id === tileId);
       if (!tile || tile.zone !== 'reserve') return;
       if (tile.roadAccess === 'none' || !tile.roadNetworkConnected) {
         sound.playError();
-        showToast('道路ネットワークに接続済みの保留地のみ売却できます。');
+        showToast('幹線・駅からつながる道路に接道した保留地のみ売却できます。');
         return;
       }
 
@@ -314,11 +336,15 @@ export default function App() {
       sound.playSale();
       showToast(`保留地 ${tileId} を ¥${salePrice.toLocaleString()}万 で売却しました。`);
     },
-    [computedTiles, pushUndo, appendLog, showToast]
+    [activeEvent, computedTiles, pushUndo, appendLog, showToast]
   );
 
   const handleCompensateOwner = useCallback(
     (ownerId: string) => {
+      if (activeEvent) {
+        showToast('先に協議事項の対応方針を選択してください。');
+        return;
+      }
       const owner = landowners.find((o) => o.id === ownerId);
       if (!owner || owner.talkedThisTurn || budget < 150) return;
 
@@ -340,14 +366,18 @@ export default function App() {
         ...prev,
         compensationSpend: prev.compensationSpend + 150,
       }));
-      appendLog('consensus', `${owner.name} へ移転・減歩補償交渉を実施`, -150);
+      appendLog('consensus', `${owner.name} と補償交渉を実施`, -150);
       sound.playStamp();
-      showToast(`${owner.name} の納得度が向上しました。`);
+      showToast(`${owner.name} の同意率が向上しました。`);
     },
-    [landowners, budget, pushUndo, appendLog, showToast]
+    [activeEvent, landowners, budget, pushUndo, appendLog, showToast]
   );
 
   const handleHoldTownHall = useCallback(() => {
+    if (activeEvent) {
+      showToast('先に協議事項の対応方針を選択してください。');
+      return;
+    }
     if (townHallUsedThisTurn || budget < 100 || ap < 2) return;
     pushUndo();
     setBudget((b) => b - 100);
@@ -363,12 +393,16 @@ export default function App() {
       ...prev,
       compensationSpend: prev.compensationSpend + 100,
     }));
-    appendLog('consensus', '地区住民説明会を開催（全地権者の同意+7%）', -100);
+    appendLog('consensus', '住民説明会を開催（全地権者の同意率+7%）', -100);
     sound.playTurn();
-    showToast('住民説明会を開催し、全地権者の理解が進みました。');
-  }, [townHallUsedThisTurn, budget, ap, pushUndo, appendLog, showToast]);
+    showToast('住民説明会を開催し、全地権者の同意率が上がりました。');
+  }, [activeEvent, townHallUsedThisTurn, budget, ap, pushUndo, appendLog, showToast]);
 
   const handleIssueBond = useCallback(() => {
+    if (activeEvent) {
+      showToast('先に協議事項の対応方針を選択してください。');
+      return;
+    }
     if (ledger.bondsIssued >= 2) return;
     pushUndo();
     setBudget((b) => b + 600);
@@ -377,10 +411,10 @@ export default function App() {
       bondDebt: prev.bondDebt + 600,
       bondsIssued: prev.bondsIssued + 1,
     }));
-    appendLog('finance', '都市整備公債を発行（毎期利子 ¥40万）', 600);
+    appendLog('finance', '都市整備公債を発行（毎期利払 ¥40万）', 600);
     sound.playSale();
-    showToast('都市整備公債を発行し ¥600万 を調達しました。');
-  }, [ledger.bondsIssued, pushUndo, appendLog, showToast]);
+    showToast('都市整備公債を発行し、事業資金 ¥600万 を調達しました。');
+  }, [activeEvent, ledger.bondsIssued, pushUndo, appendLog, showToast]);
 
   const handleAdvanceTurn = useCallback(() => {
     if (gameState !== 'PLAYING' || activeEvent) return;
@@ -399,7 +433,7 @@ export default function App() {
           id: `int-${nextTurn}`,
           turn: nextTurn,
           type: 'finance',
-          text: '都市整備公債の期別利払い',
+          text: '都市整備公債の利払い',
           amount: -interest,
         },
         ...prev,
@@ -412,7 +446,7 @@ export default function App() {
       setBudget(nextBudget);
       const names = criticalOwners.map((o) => `${o.name}（${o.approval}%）`).join('・');
       setEndReason(
-        `${names}の同意率が10%未満のまま期を進めたため、地権者との信頼関係が破綻し区画整理事業が中止されました。`
+        `${names}の同意率が10%未満のまま次の期へ進んだため、合意形成が破綻し区画整理事業は中止となりました。`
       );
       setGameState('GAME_OVER');
       sound.playError();
@@ -423,7 +457,7 @@ export default function App() {
     if (nextTurn > scenario.maxTurns) {
       setBudget(nextBudget);
       setEndReason(
-        `工期上限（全${scenario.maxTurns}期）を超過し、換地処分の法定手続きを完了できませんでした。`
+        `事業期限（全${scenario.maxTurns}期）を過ぎても換地処分の要件を満たせず、事業期間満了で中止となりました。`
       );
       setGameState('GAME_OVER');
       sound.playError();
@@ -435,7 +469,7 @@ export default function App() {
     );
     if (nextBudget < -200 && !hasAnyReserveToSell && ledger.bondsIssued >= 2) {
       setBudget(nextBudget);
-      setEndReason('事業資金が枯渇し、これ以上の都市整備・補償の継続が困難となりました。');
+      setEndReason('事業資金が枯渇し、これ以上の工事や補償交渉を継続できなくなりました。');
       setGameState('GAME_OVER');
       sound.playError();
       return;
@@ -531,18 +565,22 @@ export default function App() {
   );
 
   const handleFinalizeProject = useCallback(() => {
+    if (activeEvent) {
+      showToast('先に協議事項の対応方針を選択してください。');
+      return;
+    }
     if (!summary.canFinalize) return;
     if (budget < 0) {
       sound.playError();
-      showToast('換地処分を完了するには事業収支を黒字（¥0以上）にする必要があります。保留地を売却してください。');
+      showToast('換地処分を完了するには、事業資金を¥0以上（黒字）にする必要があります。保留地を売却してください。');
       return;
     }
     sound.playSale();
     setEndReason(
-      `${scenario.title}において全区画の接道確保・公園整備・地権者合意および健全な事業収支を達成し、無事に換地処分を完了しました。`
+      `${scenario.title}において全区画の接道整備・街区公園の確保・地権者との合意形成および黒字事業収支を達成し、換地処分を完了しました！`
     );
     setGameState('VICTORY');
-  }, [summary.canFinalize, budget, scenario.title, showToast]);
+  }, [activeEvent, summary.canFinalize, budget, scenario.title, showToast]);
 
   const toggleMute = () => {
     sound.muted = !muted;
@@ -590,7 +628,7 @@ export default function App() {
               onClick={() => startScenario(scenario)}
               className="hover:text-[#1A2026] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              最初からやり直す
+              計画をやり直す
             </button>
             <button
               type="button"
@@ -613,20 +651,23 @@ export default function App() {
           <div className="flex items-center gap-3 shrink-0">
             {summary.criticalCount > 0 && (
               <span className="hidden xl:inline text-xs font-bold text-[#DC2626]">
-                同意10%未満あり（進めると中止）
+                同意率10%未満の地権者あり（進行で中止）
               </span>
             )}
             <button
               type="button"
+              disabled={Boolean(activeEvent)}
               onClick={handleAdvanceTurn}
-              className={`px-4 py-2 text-xs font-semibold text-white rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                summary.criticalCount > 0
-                  ? 'bg-[#DC2626] hover:bg-[#B91C1C]'
-                  : 'bg-[#1D4ED8] hover:bg-[#1E40AF]'
+              className={`px-4 py-2 text-xs font-semibold text-white rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                activeEvent
+                  ? 'bg-[#94A3B8] cursor-not-allowed'
+                  : summary.criticalCount > 0
+                  ? 'bg-[#DC2626] hover:bg-[#B91C1C] cursor-pointer'
+                  : 'bg-[#1D4ED8] hover:bg-[#1E40AF] cursor-pointer'
               }`}
             >
               {summary.criticalCount > 0
-                ? `第${turn + 1}期へ進む（中止警告）`
+                ? `第${turn + 1}期へ進む（合意破綻警告）`
                 : `第${turn + 1}期へ進む`}
             </button>
           </div>
@@ -709,10 +750,10 @@ export default function App() {
             )}
             <button
               type="button"
-              disabled={undoStack.length === 0}
+              disabled={undoStack.length === 0 || Boolean(activeEvent)}
               onClick={handleUndo}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-colors whitespace-nowrap shrink-0 ${
-                undoStack.length > 0
+                undoStack.length > 0 && !activeEvent
                   ? 'bg-[#FAF9F5] text-[#1A2026] border-[#D4CFC3] hover:bg-[#EAE6DC] cursor-pointer'
                   : 'bg-[#F4F2EC] text-[#94A3B8] border-[#E5E1D8] cursor-not-allowed'
               }`}
@@ -725,7 +766,7 @@ export default function App() {
       </div>
 
       {/* Main 3-Column Tactical Workspace */}
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-[248px_1fr_320px] gap-5 items-start">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-[264px_1fr_320px] gap-5 items-start">
         <ToolSidebar
           activeTool={activeTool}
           selectedOwnerId={selectedOwnerId}
@@ -749,6 +790,7 @@ export default function App() {
           budget={budget}
           ap={ap}
           demolitionMultiplier={scenario.demolitionMultiplier ?? 1}
+          soleOwnerId={soleOwnerId}
           onTileClick={handleTileClick}
           onTileHover={setHoveredTileId}
           onSellReserve={handleSellReserve}
@@ -771,6 +813,7 @@ export default function App() {
       {/* Modals */}
       {activeEvent && (
         <EventModal
+          key={`${turn}-${activeEvent.id}`}
           event={activeEvent}
           turn={turn}
           budget={budget}

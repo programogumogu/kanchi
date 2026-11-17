@@ -28,7 +28,7 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
               対象地区
             </a>
             <a href="#mechanics" className="hover:text-[#1A2026] transition-colors whitespace-nowrap shrink-0">
-              事業の基本構造
+              事業の仕組み
             </a>
             <button
               type="button"
@@ -58,26 +58,26 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
           <div className="lg:col-span-7 flex flex-col justify-between bg-white border border-[#DED9CE] rounded-lg p-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-medium text-[#5A6572]">
-                <span>都市計画シミュレーション</span>
-                <span aria-hidden="true">·</span>
                 <span>土地区画整理事業</span>
                 <span aria-hidden="true">·</span>
-                <span>10×8街区設計</span>
+                <span>戦略シミュレーション</span>
+                <span aria-hidden="true">·</span>
+                <span>10×8区画</span>
               </div>
               <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#1A2026] leading-tight text-balance">
-                狭隘な街を解きほぐし、
+                街路を整え、換地を描き、
                 <br />
-                合意と価値を生み出す換地設計。
+                都市の未来を合意で拓く。
               </h1>
               <p className="text-[15px] leading-relaxed text-[#4A5562] max-w-2xl">
-                あなたは土地区画整理事業の施行責任者として、老朽木造密集地や無秩序なスプロール地区の再編を担います。道路と公園を敷設して路線価を引き上げ、減歩への理解を得ながら地権者の土地を美しく換地し、保留地の売却益で事業を完遂してください。
+                あなたは土地区画整理事業の設計リーダーです。狭隘路地や木密家屋・農地が入り組んだ街区を再編し、すべての土地を道路へつなぐ「接道」と公園を整備します。地権者の資産価値を高める「換地」で同意を集め、余剰地を「保留地」として売却しながら事業を黒字で完遂させましょう。
               </p>
             </div>
 
             <div className="pt-8 mt-8 border-t border-[#ECE8DF] flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-6 text-xs text-[#4A5562]">
                 <div>
-                  <span className="block text-[#7A8490]">選択中の地区</span>
+                  <span className="block text-[#7A8490]">選択地区</span>
                   <span className="font-semibold text-sm text-[#1A2026]">{selectedScenario.title}</span>
                 </div>
                 <div className="h-8 w-px bg-[#DED9CE]" />
@@ -89,7 +89,7 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
                 </div>
                 <div className="h-8 w-px bg-[#DED9CE]" />
                 <div>
-                  <span className="block text-[#7A8490]">工期上限</span>
+                  <span className="block text-[#7A8490]">事業期限</span>
                   <span className="font-mono-num font-semibold text-sm text-[#1A2026]">
                     全{selectedScenario.maxTurns}期
                   </span>
@@ -103,14 +103,14 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
                   className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-[#2F3742] bg-[#F4F2EC] border border-[#D4CFC3] rounded-md hover:bg-[#EAE6DC] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <BookOpen className="w-4 h-4" />
-                  ルールを見る
+                  設計マニュアル
                 </button>
                 <button
                   type="button"
                   onClick={() => onStartScenario(selectedScenario)}
                   className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1D4ED8] rounded-md hover:bg-[#1E40AF] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  この地区で着工する
+                  この地区で事業開始
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -158,10 +158,10 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
         <section id="scenarios" className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="font-display text-xl font-bold text-[#1A2026]">
-              01. 施行対象地区の選択
+              01. 施行対象地区を選ぶ
             </h2>
             <span className="text-xs text-[#5A6572]">
-              地区ごとに地勢・予算制約・地権者の要望が異なります
+              地区ごとに土地の課題、初期資金、地権者の要望が異なります
             </span>
           </div>
 
@@ -244,7 +244,7 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
                           : 'bg-[#F4F2EC] text-[#1A2026] border border-[#D4CFC3] hover:bg-[#EAE6DC]'
                       }`}
                     >
-                      {isSelected ? 'この地区で着工する' : '選択して着工する'}
+                      {isSelected ? 'この地区で事業開始' : '選択して開始'}
                     </button>
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
         {/* Core Mechanics Summary */}
         <section id="mechanics" className="space-y-4">
           <h2 className="font-display text-xl font-bold text-[#1A2026]">
-            02. 土地区画整理の戦略サイクル
+            02. 土地区画整理事業の3原則
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -264,11 +264,11 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
               <div className="flex items-center gap-2 text-[#1D4ED8]">
                 <Compass className="w-5 h-5" />
                 <h3 className="font-display font-bold text-base text-[#1A2026]">
-                  道路ネットワークと防災公園
+                  1. 街路網と公園の整備
                 </h3>
               </div>
               <p className="text-sm text-[#4A5562] leading-relaxed">
-                既存の幹線接続点・駅から6m区画道路や12m幹線道路を伸ばし、すべての区画へ緊急車両が入れる接道環境を構築します。公園を隣接させると周辺地価と住民満足度が大きく向上します。
+                「幹線接続点」や駅から6m・12mの道路を延ばし、すべての区画を道路に接道させます。街区公園を隣接させると周辺の地価と住環境が大きく向上します。
               </p>
             </div>
 
@@ -276,11 +276,11 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
               <div className="flex items-center gap-2 text-[#15803D]">
                 <Layers className="w-5 h-5" />
                 <h3 className="font-display font-bold text-base text-[#1A2026]">
-                  減歩と換地による価値増進
+                  2. 換地と減歩のバランス
                 </h3>
               </div>
               <p className="text-sm text-[#4A5562] leading-relaxed">
-                道路・公園用地の捻出により各地権者の面積は減少（減歩）しますが、路線価の高い整形宅地や立体商業ビルへ換地することで「総資産額」を増進させ、地権者の同意を獲得します。
+                公共用地を生み出すため地権者の面積は少し減ります（減歩）が、接道条件の良い整形宅地や立体商業ビルへ「換地」して総資産価値を増やすことで同意率を高められます。
               </p>
             </div>
 
@@ -288,11 +288,11 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
               <div className="flex items-center gap-2 text-[#B45309]">
                 <Landmark className="w-5 h-5" />
                 <h3 className="font-display font-bold text-base text-[#1A2026]">
-                  保留地処分による資金循環
+                  3. 保留地の確保と売却
                 </h3>
               </div>
               <p className="text-sm text-[#4A5562] leading-relaxed">
-                整理した公有空地を「保留地」に指定し、幹線道路や公園で地価を高めたうえで売却して事業資金を回収します。限られた予算と工期の中で破綻せず換地処分を完了させましょう。
+                整理済空地に「保留地」を指定し、大通りや公園で地価を引き上げてから売却すれば大きな事業資金が得られます。公債の発行も活用し黒字完了を目指しましょう。
               </p>
             </div>
           </div>
@@ -301,10 +301,10 @@ export function TitleScreen({ onStartScenario, onOpenGuide }: TitleScreenProps) 
 
       <footer className="border-t border-[#DED9CE] bg-[#FAF9F5] px-6 py-4 text-xs text-[#5A6572]">
         <div className="max-w-[1320px] mx-auto flex items-center justify-between">
-          <span>換地設計 KANCHI — 土地区画整理シミュレーション</span>
+          <span>換地設計 KANCHI — 土地区画整理戦略シミュレーション</span>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#15803D]" />
-            <span>1区画 = 100㎡（約30坪）換算</span>
+            <span>1区画 = 100㎡（約30坪）</span>
           </div>
         </div>
       </footer>

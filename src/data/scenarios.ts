@@ -19,10 +19,10 @@ export const SCENARIOS: ScenarioConfig[] = [
   {
     id: 'sakuragi',
     title: '桜木町・木密改善地区',
-    subtitle: '下町密集市街地の防災・接道再生',
+    subtitle: 'せまい路地と古い木造住宅が密集する下町の防災・接道再生',
     difficulty: '初級',
     description:
-      '幅2mの狭隘路地に老朽木造住宅が密集し、緊急車両が進入できない下町エリア。区画道路と防災公園を整備し、地権者の資産価値を高めながら安全な街区へ換地せよ。',
+      '幅2mのせまい路地に古い木造住宅（木密）がぎっしり並び、消防車も入れない下町エリア。区画道路と公園を整備し、地権者の土地価値を高めながら安全な街へ換地しよう。',
     imagePath: '/src/assets/images/district_sakuragi_1794544553027.jpg',
     startingBudget: 2400,
     apPerTurn: 5,
@@ -37,26 +37,26 @@ export const SCENARIOS: ScenarioConfig[] = [
       {
         id: 'owner_1',
         name: '佐藤 重雄',
-        role: '木造住宅地主',
+        role: '木造住宅の地権者',
         color: '#2563EB',
         preference: 'safety_first',
-        preferenceText: '全区画の道路接続と木密解消を重視',
+        preferenceText: '全区画の接道と木密の解消を重視',
       },
       {
         id: 'owner_2',
         name: '高橋 商店',
-        role: '老舗日用品店',
+        role: '老舗の日用品店',
         color: '#C2410C',
         preference: 'arterial_commercial',
-        preferenceText: '大通り・駅周辺での商業立地を希望',
+        preferenceText: '12m幹線道路や駅の近くでの商業立地を希望',
       },
       {
         id: 'owner_3',
         name: '中村 悦子',
-        role: '賃貸アパート大家',
+        role: 'アパートの大家',
         color: '#0D9488',
         preference: 'park_lover',
-        preferenceText: '公園に隣接する閑静な宅地を希望',
+        preferenceText: '公園に隣接する静かな宅地を希望',
       },
       {
         id: 'owner_4',
@@ -64,7 +64,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '昔ながらの自宅',
         color: '#7C3AED',
         preference: 'keep_area',
-        preferenceText: '過度な減歩（25%超）に強い抵抗感',
+        preferenceText: '大幅な減歩（25%超の面積減少）に抵抗あり',
       },
       {
         id: 'owner_5',
@@ -106,10 +106,10 @@ export const SCENARIOS: ScenarioConfig[] = [
   {
     id: 'midorigaoka',
     title: '緑ヶ丘・郊外スプロール地区',
-    subtitle: '農地と工場が混在する無秩序市街地の再編',
+    subtitle: '農地と老朽工場、飛び地住宅が混在する郊外市街地の再編',
     difficulty: '中級',
     description:
-      '虫食い状の農地・老朽工場・飛び地住宅が点在し、初期事業資金も限られた郊外地区。農地は更地整理を経てから保留地化する必要があり、12m幹線道路を軸とした計画的な資金循環が求められる。',
+      '農地と老朽工場、孤立した住宅がバラバラに建つ郊外エリア。農地は先に「更地化・整理」を行ってからでないと保留地にできないため、12m幹線道路を軸に計画的な資金循環を組み立てよう。',
     imagePath: '/src/assets/images/district_midorigaoka_1794544554003.jpg',
     startingBudget: 1750,
     apPerTurn: 5,
@@ -128,7 +128,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '都市農家',
         color: '#15803D',
         preference: 'keep_area',
-        preferenceText: '広大な所有面積の極端な減歩を嫌う',
+        preferenceText: '広い農地が大きく減歩されることを嫌う',
       },
       {
         id: 'owner_2',
@@ -136,23 +136,23 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '運送・倉庫業',
         color: '#B45309',
         preference: 'arterial_commercial',
-        preferenceText: '12m幹線道路沿いへの換地を強く要求',
+        preferenceText: '12m幹線道路沿いへの換地を強く希望',
       },
       {
         id: 'owner_3',
         name: '伊藤 正夫',
-        role: '飛び地戸建所有者',
+        role: '飛び地住宅の持ち主',
         color: '#2563EB',
         preference: 'park_lover',
-        preferenceText: '公園そばの整った住宅街への移転を希望',
+        preferenceText: '公園そばの整った宅地への移転を希望',
       },
       {
         id: 'owner_4',
         name: '渡辺 工務店',
-        role: '資材置場・作業場',
+        role: '資材置き場・作業場',
         color: '#7C3AED',
         preference: 'safety_first',
-        preferenceText: '道路接続と周辺の老朽施設整理を重視',
+        preferenceText: '全区画の接道と周りの老朽施設整理を重視',
       },
       {
         id: 'owner_5',
@@ -160,15 +160,15 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: 'ロードサイド店舗',
         color: '#C2410C',
         preference: 'vertical_ok',
-        preferenceText: '商業区画での高収益化に前向き',
+        preferenceText: '立体商業ビルでの収益向上に前向き',
       },
       {
         id: 'owner_6',
         name: '加藤 幸子',
-        role: '相続遊休地主',
+        role: '遊休地の地権者',
         color: '#0D9488',
         preference: 'park_lover',
-        preferenceText: '緑豊かな住環境での地価上昇を期待',
+        preferenceText: '緑豊かな住環境で土地価格が上がることを期待',
       },
     ],
     ownerMap: {
@@ -203,10 +203,10 @@ export const SCENARIOS: ScenarioConfig[] = [
   {
     id: 'shintoshin',
     title: '新都心西口・駅前再開発地区',
-    subtitle: '鉄道駅直結の高度利用と立体換地戦略',
+    subtitle: '鉄道駅に直結する商業エリアの立体換地と高度利用',
     difficulty: '上級',
     description:
-      '主要鉄道駅の西口にありながら、戦後闇市由来の狭小店舗と老朽ビルがひしめく最難関地区。高騰した解体費（1.4倍）と限られた資金・手数の中、厳しい要望を持つ商業地権者たちを90%以上の合意へ導け。',
+      '主要駅の西口にありながら、古い小店舗と老朽ビルが密集する最難関エリア。高い解体費（1.4倍）と限られた資金・行動力の中で、厳しい要望を持つ商業地権者たちを納得度90%以上へ導け。',
     imagePath: '/src/assets/images/district_shintoshin_1794544554443.jpg',
     startingBudget: 1950,
     apPerTurn: 5,
@@ -226,7 +226,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '駅前老舗商業',
         color: '#C2410C',
         preference: 'arterial_commercial',
-        preferenceText: '駅前・12m幹線沿いの商業ビル化が必須条件',
+        preferenceText: '駅前や12m幹線道路沿いでの商業ビル化が必須',
       },
       {
         id: 'owner_2',
@@ -234,7 +234,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: 'ビル賃貸事業者',
         color: '#2563EB',
         preference: 'vertical_ok',
-        preferenceText: '立体換地（商業ビル）による容積確保を評価',
+        preferenceText: '立体換地（商業ビル）による価値向上を評価',
       },
       {
         id: 'owner_3',
@@ -242,7 +242,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '横丁店主組合',
         color: '#D97706',
         preference: 'keep_area',
-        preferenceText: '床面積減少に敏感。補償または面積維持を要求',
+        preferenceText: '減歩による広さ減少に敏感。面積維持か補償を要求',
       },
       {
         id: 'owner_4',
@@ -250,7 +250,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '駅前ビジネス宿',
         color: '#7C3AED',
         preference: 'arterial_commercial',
-        preferenceText: '幹線道路接続によるアクセス向上を要望',
+        preferenceText: '12m幹線道路への接道によるアクセス向上を希望',
       },
       {
         id: 'owner_5',
@@ -258,7 +258,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '旧工場・店舗',
         color: '#0D9488',
         preference: 'safety_first',
-        preferenceText: '老朽木造・工場の一掃と防災性確保を重視',
+        preferenceText: '木密・老朽工場の一掃と全区画の接道を重視',
       },
       {
         id: 'owner_6',
@@ -266,7 +266,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '駅前平面駐車場',
         color: '#15803D',
         preference: 'park_lover',
-        preferenceText: '駅前緑地・広場に面した区画への換地を希望',
+        preferenceText: '駅前緑地や公園に面した区画への換地を希望',
       },
       {
         id: 'owner_7',
@@ -274,7 +274,7 @@ export const SCENARIOS: ScenarioConfig[] = [
         role: '地元町会長',
         color: '#475569',
         preference: 'park_lover',
-        preferenceText: '住民の憩いの場（公園）と防災安全を重視',
+        preferenceText: '公園の確保と街全体の防災性を重視',
       },
     ],
     ownerMap: {
@@ -315,24 +315,24 @@ export const TURN_EVENTS: TurnEvent[] = [
     title: '地下遺構・文化財の出土',
     category: '工事調整',
     description:
-      '区画道路の掘削現場から江戸期の町屋遺構が出土した。迅速な記録保存調査で工期を守るか、展示広場として地域価値を高めるか判断が求められている。',
+      '区画道路の工事現場から江戸時代の町屋のあとが見つかりました。急ぎの発掘調査でお金をかけて工期を守るか、費用を抑えて次期の施工量を減らすか判断が必要です。',
     choices: [
       {
-        label: '緊急発掘調査を実施（-¥220万）',
-        description: '専門調査団を投入し、工期と地権者の信頼を維持する。',
+        label: '急いで専門調査を実施する（-¥220万）',
+        description: '調査団を投入して工期を守り、地権者からの信頼を保ちます。',
         budgetDelta: -220,
         approvalDeltaAll: 4,
       },
       {
-        label: '通常調査で工程を調整（¥0 · 次期AP-1）',
-        description: '費用を抑えるが、次期の施工行動力が1減少する。',
+        label: '通常ペースで調査を進める（¥0 · 次期AP-1）',
+        description: '費用はかかりませんが、次の期の行動力(AP)が1減ります。',
         budgetDelta: 0,
         apNextTurnDelta: -1,
         approvalDeltaAll: -2,
       },
       {
-        label: '歴史公園整備と連携（-¥140万）',
-        description: '公園志向の地権者から高い評価を得る。',
+        label: '歴史を生かした公園整備につなげる（-¥140万）',
+        description: '公園の近くを望む地権者から高く評価されます。',
         budgetDelta: -140,
         targetPreferenceApprovalDelta: { preference: 'park_lover', delta: 12 },
       },
@@ -340,19 +340,19 @@ export const TURN_EVENTS: TurnEvent[] = [
   },
   {
     id: 'material_surge',
-    title: '建設資材・アスファルト価格の上昇',
+    title: '建設資材・舗装費用の値上がり',
     category: '事業財政',
     description:
-      '近隣再開発の集中により舗装材と解体工事費が一時的に高騰している。事業資金の確保と工程維持の方針を選択せよ。',
+      '周辺の再開発ラッシュにより、道路の舗装材や解体工事の費用が一時的に上がっています。資金のやりくりを選びましょう。',
     choices: [
       {
-        label: '自治体共同調達枠を活用（-¥120万）',
-        description: '広域調達で影響を最小限に抑え、行動力を維持する。',
+        label: '近隣自治体と共同調達する（-¥120万）',
+        description: '少し費用を負担し、工事ペースや地権者の納得度を守ります。',
         budgetDelta: -120,
       },
       {
-        label: '国交省・都市再生緊急枠を申請（+¥280万 · 同意率-3%）',
-        description: '手続きの煩雑さで一部地権者が不安視するが補助金を得る。',
+        label: '国の都市再生補助金を申請する（+¥280万 · 同意率-3%）',
+        description: '補助金で資金を増やせますが、手続きが増え一部地権者が不安視します。',
         budgetDelta: 280,
         approvalDeltaAll: -3,
       },
@@ -360,22 +360,22 @@ export const TURN_EVENTS: TurnEvent[] = [
   },
   {
     id: 'developer_offer',
-    title: '大手デベロッパーによる保留地視察',
+    title: '大手不動産会社による保留地視察',
     category: '保留地処分',
     description:
-      '地域の将来性に注目した不動産デベロッパーが、整備済の保留地取得を打診してきた。条件が整っていれば高値での即時売却が可能だ。',
+      'この地区の将来性に注目した不動産会社が「接道済みの保留地があれば、いま特別価格で買い取りたい」と打診してきました。',
     choices: [
       {
-        label: '接道済の保留地を特別価格で売却（+¥750万）',
-        description: '道路ネットワークに接続済みの保留地1区画を即座に売却する。',
+        label: '接道済の保留地を1区画売却する（+¥750万）',
+        description: '道路ネットワークにつながった保留地1区画をすぐに資金化します。',
         budgetDelta: 750,
         requiresReserveConnected: true,
         sellsOneReserve: true,
         approvalDeltaAll: 3,
       },
       {
-        label: '将来の地価上昇を待って見送る（同意率+2%）',
-        description: '投機的な売却を控え、地元地権者の安心感を得る。',
+        label: '今後の地価上昇を待って見送る（同意率+2%）',
+        description: '焦って売らない姿勢を見せ、地元地権者の安心感を得ます。',
         budgetDelta: 0,
         approvalDeltaAll: 2,
       },
@@ -383,20 +383,20 @@ export const TURN_EVENTS: TurnEvent[] = [
   },
   {
     id: 'fire_audit',
-    title: '消防局による防災街区中間査察',
+    title: '消防局による防災街区の中間チェック',
     category: '防災評価',
     description:
-      '自治体消防局が事業区域内の緊急車両進入ルートと延焼遮断帯の整備状況を査察した。',
+      '消防局の担当者が、緊急車両が入れる道路や公園による避難空間が順調に整備されているか視察しました。',
     choices: [
       {
-        label: '防災重点助成プログラムを受給（+¥320万）',
-        description: '防火・接道意識の高い地権者の信頼も向上する。',
+        label: '防災重点の助成金を受け取る（+¥320万）',
+        description: '事業資金が増え、防災安全を重視する地権者の信頼も上がります。',
         budgetDelta: 320,
         targetPreferenceApprovalDelta: { preference: 'safety_first', delta: 10 },
       },
       {
-        label: '住民向け防災マップ配布で周知（-¥60万 · 全員+5%）',
-        description: '街づくりの目的が共有され、全体の合意形成が進む。',
+        label: '住民向けに防災マップを配布する（-¥60万 · 全員+5%）',
+        description: '安全な街づくりの狙いが伝わり、全体の同意率が上がります。',
         budgetDelta: -60,
         approvalDeltaAll: 5,
       },
@@ -407,23 +407,23 @@ export const TURN_EVENTS: TurnEvent[] = [
     title: '地元商店会からの共同要望書',
     category: '合意形成',
     description:
-      '商業系の地権者たちから「工事期間中の営業影響と、換地後の人流確保について明確な配慮をしてほしい」と要望書が提出された。',
+      'お店を営む地権者たちから「工事期間中の売り上げへの影響や、換地後の人通りの多さにきちんと配慮してほしい」と要望が届きました。',
     choices: [
       {
-        label: '営業補償枠を特別計上（-¥240万 · 全員+7%）',
-        description: '誠意ある対応により反対・保留派の態度が軟化する。',
+        label: '営業補償の特別枠を用意する（-¥240万 · 全員+7%）',
+        description: '誠実な補償対応により、みんなの納得度が大きく上がります。',
         budgetDelta: -240,
         approvalDeltaAll: 7,
       },
       {
-        label: '商業・幹線志向の要望を優先調整（-¥120万）',
-        description: '大通り・商業志向の地権者の納得感を大きく引き上げる。',
+        label: '大通り・商業志向の要望を優先調整する（-¥120万）',
+        description: '12m幹線道路や商業立地を求める地権者の納得度が大きく上がります。',
         budgetDelta: -120,
         targetPreferenceApprovalDelta: { preference: 'arterial_commercial', delta: 14 },
       },
       {
-        label: '事業計画の原則通り説明を継続（¥0）',
-        description: '追加支出を避けるが、面積維持派がやや警戒する。',
+        label: '当初の計画通り進めることを説明する（¥0）',
+        description: '追加の支出は抑えられますが、減歩を気にする地権者が少し警戒します。',
         budgetDelta: 0,
         targetPreferenceApprovalDelta: { preference: 'keep_area', delta: -5 },
       },

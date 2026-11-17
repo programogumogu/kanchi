@@ -151,7 +151,7 @@ export function LandownerPanel({
                           {lo.status === 'agreed'
                             ? '同意'
                             : lo.status === 'pending'
-                            ? '保留'
+                            ? '検討中'
                             : '反対'}
                         </span>
                         <span className="font-mono-num ml-0.5">{lo.approval}%</span>
@@ -198,12 +198,11 @@ export function LandownerPanel({
                   </div>
 
                   {/* Preference & Actions */}
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="text-[11px] leading-snug">
                     <span
-                      className={`truncate ${
+                      className={
                         lo.preferenceMet ? 'text-[#15803D] font-medium' : 'text-[#5A6572]'
-                      }`}
-                      title={lo.preferenceText}
+                      }
                     >
                       {lo.preferenceMet ? '✓ 要望達成: ' : '要望: '}
                       {lo.preferenceText}
@@ -221,7 +220,7 @@ export function LandownerPanel({
                       }`}
                     >
                       <MapPinned className="w-3 h-3" />
-                      {isSelected ? 'ハイライト中' : '所有地を表示'}
+                      {isSelected ? '所有地を表示中' : '所有地を表示'}
                     </button>
                     <button
                       type="button"
@@ -246,10 +245,10 @@ export function LandownerPanel({
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Finance Ledger Summary */}
           <div className="p-3.5 border-b border-[#ECE8DF] space-y-2 text-xs">
-            <h3 className="font-display font-bold text-[#1A2026]">累計事業収支内訳</h3>
+            <h3 className="font-display font-bold text-[#1A2026]">これまでの事業収支</h3>
             <div className="space-y-1.5 font-mono-num">
               <div className="flex justify-between text-[#15803D]">
-                <span>保留地処分収入</span>
+                <span>保留地の売却収入</span>
                 <span>+¥{ledger.reserveSalesIncome.toLocaleString()}万</span>
               </div>
               <div className="flex justify-between text-[#15803D]">
@@ -268,7 +267,7 @@ export function LandownerPanel({
               </div>
               {ledger.bondDebt > 0 && (
                 <div className="flex justify-between text-[#B45309] pt-1 border-t border-[#ECE8DF]">
-                  <span>都市整備公債残高</span>
+                  <span>都市整備公債の残高</span>
                   <span>¥{ledger.bondDebt.toLocaleString()}万</span>
                 </div>
               )}
@@ -279,7 +278,7 @@ export function LandownerPanel({
           <div className="flex-1 overflow-y-auto p-3.5 space-y-2 max-h-[500px]">
             <h3 className="font-display text-xs font-bold text-[#1A2026]">施行記録</h3>
             {logs.length === 0 ? (
-              <p className="text-xs text-[#7A8490]">まだ施行記録はありません。</p>
+              <p className="text-xs text-[#7A8490]">まだ記録はありません。</p>
             ) : (
               <ul className="space-y-2 text-xs">
                 {logs.map((entry) => (

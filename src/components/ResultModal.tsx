@@ -92,7 +92,7 @@ export function ResultModal({
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-[#FAF9F5] border border-[#ECE8DF] rounded-lg p-4 text-xs">
             <div>
-              <span className="block text-[#64748B]">完了期 / 工期</span>
+              <span className="block text-[#64748B]">完了工期 / 制限工期</span>
               <span className="font-mono-num text-base font-bold text-[#1A2026]">
                 第{turn} / {scenario.maxTurns}期
               </span>
@@ -104,7 +104,7 @@ export function ResultModal({
               </span>
             </div>
             <div>
-              <span className="block text-[#64748B]">平均地価上昇率</span>
+              <span className="block text-[#64748B]">平均資産増進率</span>
               <span className="font-mono-num text-base font-bold text-[#15803D]">
                 {summary.valueIncreasePct >= 0 ? '+' : ''}
                 {summary.valueIncreasePct}%
@@ -148,7 +148,7 @@ export function ResultModal({
               className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-[#1D4ED8] rounded-md hover:bg-[#1E40AF] transition-colors whitespace-nowrap cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              この地区をもう一度設計する
+              この地区を再設計する
             </button>
           </div>
         </div>

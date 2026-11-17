@@ -19,6 +19,7 @@ interface DistrictGridProps {
   budget: number;
   ap: number;
   demolitionMultiplier?: number;
+  soleOwnerId?: string | null;
   onTileClick: (tile: ComputedTile) => void;
   onTileHover: (tileId: string | null) => void;
   onSellReserve: (tileId: string) => void;
@@ -34,6 +35,7 @@ export function DistrictGrid({
   budget,
   ap,
   demolitionMultiplier = 1,
+  soleOwnerId = null,
   onTileClick,
   onTileHover,
   onSellReserve,
@@ -52,7 +54,8 @@ export function DistrictGrid({
         selectedOwnerId,
         budget,
         ap,
-        demolitionMultiplier
+        demolitionMultiplier,
+        soleOwnerId
       )
     : null;
 
@@ -119,7 +122,8 @@ export function DistrictGrid({
                     selectedOwnerId,
                     budget,
                     ap,
-                    demolitionMultiplier
+                    demolitionMultiplier,
+                    soleOwnerId
                   )
                 : null;
 
@@ -159,7 +163,7 @@ export function DistrictGrid({
                   type="button"
                   onClick={() => onTileClick(tile)}
                   onMouseEnter={() => onTileHover(tile.id)}
-                  aria-label={`${tile.id} ${ZONE_LABELS[tile.zone]} ${owner ? owner.name : '公有地'}`}
+                  aria-label={`${tile.id} ${ZONE_LABELS[tile.zone]} ${owner ? owner.name : '共有地'}`}
                   className={`relative aspect-square min-h-[48px] rounded-[3px] flex flex-col items-center justify-center transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] cursor-pointer overflow-hidden ${tileBg} ${
                     isSelectedTile
                       ? 'ring-2 ring-[#1A2026] z-10'
@@ -267,7 +271,7 @@ export function DistrictGrid({
                     )}
                     {tile.zone === 'reserve' && (
                       <span className="text-[10px] font-bold text-[#B45309] bg-white/85 px-1 rounded">
-                        保留
+                        保留地
                       </span>
                     )}
                     {tile.zone === 'reserve_sold' && (
@@ -282,7 +286,7 @@ export function DistrictGrid({
                     {tile.zone === 'arterial_entry' && (
                       <div className="flex flex-col items-center text-white">
                         <span className="text-[9px] font-bold tracking-tight">幹線</span>
-                        <span className="text-[8px] opacity-85">接続点</span>
+                        <span className="text-[8px] opacity-85">接続</span>
                       </div>
                     )}
                     {(tile.zone === 'road_6m' || tile.zone === 'road_12m') && (
@@ -306,7 +310,7 @@ export function DistrictGrid({
                   {showUnconnectedWarning && (
                     <span
                       className="absolute top-0.5 right-0.5 text-[9px] font-bold bg-[#DC2626] text-white px-1 rounded-[2px] leading-[12px]"
-                      title="既存幹線または駅に接続されていません"
+                      title="幹線道路・駅に接続されていません"
                     >
                       !
                     </span>
@@ -314,7 +318,7 @@ export function DistrictGrid({
                   {!showUnconnectedWarning && isUnservicedParcel && (
                     <span
                       className="absolute bottom-0.5 right-0.5 text-[#DC2626]"
-                      title="未接道または老朽区画"
+                      title="未接道または未整備の区画"
                     >
                       <ShieldAlert className="w-3 h-3" />
                     </span>
@@ -381,14 +385,14 @@ export function DistrictGrid({
                 <span className="font-semibold text-[#1A2026]">{ZONE_LABELS[inspectedTile.zone]}</span>
                 <span aria-hidden="true">·</span>
                 <span>
-                  所有:{' '}
+                  地権者:{' '}
                   <strong className="text-[#1A2026]">
-                    {inspectedOwner ? inspectedOwner.name : '公有地・保留地枠'}
+                    {inspectedOwner ? inspectedOwner.name : '保留地・公共空間'}
                   </strong>
                 </span>
                 <span aria-hidden="true">·</span>
                 <span className="font-mono-num">
-                  坪単価 ¥{inspectedTile.unitValue}万（評価 ¥{inspectedTile.totalValue.toLocaleString()}万）
+                  単価 ¥{inspectedTile.unitValue}万/坪（区画評価 ¥{inspectedTile.totalValue.toLocaleString()}万）
                 </span>
               </div>
 
@@ -401,12 +405,12 @@ export function DistrictGrid({
                   }
                 >
                   {inspectedTile.roadAccess === 'road_12m' && inspectedTile.roadNetworkConnected
-                    ? '● 12m幹線接道済'
+                    ? '● 12m幹線道路 接道済'
                     : inspectedTile.roadAccess === 'road_6m' && inspectedTile.roadNetworkConnected
-                    ? '● 6m道路接道済'
+                    ? '● 6m区画道路 接道済'
                     : inspectedTile.roadAccess !== 'none'
-                    ? '▲ 道路未接続（拠点へ繋いでください）'
-                    : '▲ 未接道（緊急車両進入不可）'}
+                    ? '▲ 幹線・駅への接続が未完了'
+                    : '▲ 未接道（建築不可・緊急車両進入不可）'}
                 </span>
                 {inspectedTile.adjacentPark && (
                   <>
@@ -417,13 +421,13 @@ export function DistrictGrid({
                 {inspectedTile.adjacentStationOrSold && (
                   <>
                     <span aria-hidden="true" className="text-[#94A3B8]">·</span>
-                    <span className="text-[#1D4ED8]">駅/開発拠点隣接 +25%</span>
+                    <span className="text-[#1D4ED8]">駅・商業隣接 +25%</span>
                   </>
                 )}
                 {inspectedTile.adjacentHazard && (
                   <>
                     <span aria-hidden="true" className="text-[#94A3B8]">·</span>
-                    <span className="text-[#B45309]">老朽施設隣接 -12%</span>
+                    <span className="text-[#B45309]">木密・工場隣接 -12%</span>
                   </>
                 )}
               </div>
@@ -443,7 +447,7 @@ export function DistrictGrid({
                   </button>
                 ) : (
                   <span className="text-xs font-medium text-[#B45309]">
-                    {selectedTile.id} の保留地売却には接続道路が必要です
+                    {selectedTile.id} の保留地を売却するには接道が必要です
                   </span>
                 ))}
 
@@ -451,8 +455,13 @@ export function DistrictGrid({
                 <div className="text-right text-xs">
                   {hoverPreview.allowed ? (
                     <span className="font-mono-num font-semibold text-[#1D4ED8]">
-                      施工可: ¥{hoverPreview.cost}万 · {hoverPreview.apCost}AP
-                      {(hoverPreview.demolitionSurcharge ?? 0) > 0 && ` (解体費¥${hoverPreview.demolitionSurcharge}万含)`}
+                      {(activeTool === 'replot_res' || activeTool === 'replot_com') &&
+                      hoverPreview.resolvedOwnerId &&
+                      ownerMap.get(hoverPreview.resolvedOwnerId)
+                        ? `施工可（${ownerMap.get(hoverPreview.resolvedOwnerId)?.name}へ換地）`
+                        : '施工可'}
+                      : ¥{hoverPreview.cost}万 · {hoverPreview.apCost}AP
+                      {(hoverPreview.demolitionSurcharge ?? 0) > 0 && ` (解体補償¥${hoverPreview.demolitionSurcharge}万含む)`}
                     </span>
                   ) : (
                     <span className="text-[#DC2626] font-medium">{hoverPreview.reason}</span>
@@ -464,7 +473,7 @@ export function DistrictGrid({
         ) : (
           <div className="flex items-center justify-between w-full text-xs text-[#5A6572]">
             <span>
-              地図上の区画にカーソルを合わせるかクリックすると、路線価・接道状況・換地詳細が表示されます。
+              地図上の区画にカーソルを合わせるかクリックすると、坪単価や接道状況・施工可否を確認できます。
             </span>
             {selectedTile && selectedTile.zone === 'reserve' && selectedTile.roadNetworkConnected && (
               <button
@@ -472,7 +481,7 @@ export function DistrictGrid({
                 onClick={() => onSellReserve(selectedTile.id)}
                 className="px-3.5 py-2 text-xs font-semibold text-white bg-[#D97706] rounded-md hover:bg-[#B45309] transition-colors whitespace-nowrap cursor-pointer"
               >
-                選択中の保留地 {selectedTile.id} を売却 (+¥{selectedTile.totalValue.toLocaleString()}万)
+                保留地 {selectedTile.id} を売却 (+¥{selectedTile.totalValue.toLocaleString()}万)
               </button>
             )}
             {selectedTileOwner && selectedTile?.zone !== 'reserve' && (
